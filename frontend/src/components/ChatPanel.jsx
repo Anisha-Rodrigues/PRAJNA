@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import VoiceInput from "./VoiceInput";
 import { sendQuery, saveMemory } from "../utils/api";
 
-export default function ChatPanel({ officerId, sessionId, onNodesReceived }) {
+export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiReply }) {
   const [messages, setMessages] = useState([
     { role: "ai", text: "Namaskara, Officer. Ask me about a suspect, FIR, location, or crime pattern." },
   ]);
@@ -27,6 +27,7 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived }) {
         { role: "ai", text: data.answer, citedFirs: data.cited_firs },
       ]);
       onNodesReceived(data.nodes || [], data.edges || []);
+      onAiReply?.(data.answer, data.cited_firs);
       await saveMemory(officerId, text, data.answer, "logged");
     } catch (err) {
       setMessages((prev) => [
