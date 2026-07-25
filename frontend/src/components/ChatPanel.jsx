@@ -30,11 +30,16 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiR
       onAiReply?.(data.answer, data.cited_firs);
       await saveMemory(officerId, text, data.answer, "logged");
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", text: "Connection error — check that the backend is running on port 8000." },
-      ]);
-    } finally {
+  console.error("PRAJNA request error:", err);
+
+  setMessages((prev) => [
+    ...prev,
+    {
+      role: "ai",
+      text: `Error: ${err.message}`,
+    },
+  ]);
+} finally {
       setLoading(false);
     }
   };
