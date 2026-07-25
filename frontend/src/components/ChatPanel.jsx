@@ -37,7 +37,21 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiR
       onNodesReceived(data.nodes || [], data.edges || []);
       onAiReply?.(data.answer, data.cited_firs);
       if (voiceOutputOn) speak(data.answer, language);
-      await saveMemory(officerId, text, data.answer, "logged");
+
+      // Memory Weaving logging is best-effort and must never overwrite a
+      // successful answer above with a false "connection error". It also
+      // has to send an object, not a raw string — the backend's
+      // MemoryRequest model requires response: Dict[str, Any].
+      try {
+        await saveMemory(
+          officerId,
+          text,
+          { answer: data.answer, cited_firs: data.cited_firs || [] },
+          "logged"
+        );
+      } catch (memErr) {
+        console.warn("Memory Weaving save failed (non-fatal):", memErr);
+      }
     } catch (err) {
       const errText = "Connection error — check that the backend is running on port 8000.";
       setMessages((prev) => [...prev, { role: "ai", text: errText }]);
