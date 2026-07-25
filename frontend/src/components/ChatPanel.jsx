@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import VoiceInput from "./VoiceInput";
 import { sendQuery, saveMemory } from "../utils/api";
+import { speak, stopSpeaking, isSpeechSynthesisSupported } from "../utils/tts";
 
 export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiReply }) {
   const [messages, setMessages] = useState([
@@ -8,14 +9,21 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiR
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [voiceOutputOn, setVoiceOutputOn] = useState(true);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
   }, [messages]);
 
+  // Stop any in-progress speech if this panel unmounts (e.g. navigating away)
+  useEffect(() => {
+    return () => stopSpeaking();
+  }, []);
+
   const handleSend = async (text, language = "en-IN") => {
     if (!text.trim()) return;
+    stopSpeaking(); // cut off any speech from a previous reply
     setMessages((prev) => [...prev, { role: "officer", text }]);
     setInput("");
     setLoading(true);
@@ -28,12 +36,12 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiR
       ]);
       onNodesReceived(data.nodes || [], data.edges || []);
       onAiReply?.(data.answer, data.cited_firs);
+      if (voiceOutputOn) speak(data.answer, language);
       await saveMemory(officerId, text, data.answer, "logged");
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", text: "Connection error — check that the backend is running on port 8000." },
-      ]);
+      const errText = "Connection error — check that the backend is running on port 8000.";
+      setMessages((prev) => [...prev, { role: "ai", text: errText }]);
+      if (voiceOutputOn) speak(errText, language);
     } finally {
       setLoading(false);
     }
@@ -41,8 +49,24 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiR
 
   return (
     <div className="flex flex-col h-full bg-gray-900 border-r border-gray-800">
-      <div className="p-3 border-b border-gray-800 font-semibold text-blue-400">
-        AI Investigator Chat
+      <div className="p-3 border-b border-gray-800 font-semibold text-blue-400 flex items-center justify-between">
+        <span>AI Investigator Chat</span>
+        {isSpeechSynthesisSupported() && (
+          <button
+            onClick={() => {
+              if (voiceOutputOn) stopSpeaking();
+              setVoiceOutputOn((v) => !v);
+            }}
+            title={
+              voiceOutputOn
+                ? "Voice output on — click to mute"
+                : "Voice output muted — click to enable"
+            }
+            className="text-xs text-gray-400 hover:text-white font-normal"
+          >
+            {voiceOutputOn ? "🔊" : "🔇"}
+          </button>
+        )}
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
