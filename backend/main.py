@@ -2,32 +2,43 @@
 PRAJNA — FastAPI Backend
 ========================
 
-Backend foundation for the PRAJNA Crime Intelligence Platform.
+Predictive Reasoning & Adaptive Justice Network for Action
 
-Part 1 provides:
-- FastAPI application
-- CORS configuration
-- API route structure
-- Mock database integration
-- Network graph API
-- FIR lookup
-- Suspect lookup
-- Placeholder integration points for Part 2 engines
+KSP Datathon 2026
+Challenges 01 & 02
 
-The query, memory, and pressure logic will be connected to:
-- query_engine.py
-- memory_weaving.py
-- pressure_engine.py
+This backend integrates:
 
-when Part 2 is integrated.
+1. Investigator conversational query engine
+2. Criminal intelligence network
+3. FIR lookup
+4. Suspect lookup
+5. Crime pressure analytics
+6. Memory Weaving
+7. Dissent feedback
+8. Anomaly alerts
+
+The current system uses deterministic mock intelligence data and
+in-memory Memory Weaving storage.
+
+The architecture is designed so the mock data and memory layer can
+later be replaced by persistent Zoho Catalyst storage.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+from memory_weaving import (
+    create_memory_thread,
+    get_memory_summary,
+    get_memory_thread,
+    get_memory_threads,
+    record_dissent,
+)
 
 from mock_db import (
     get_active_alerts,
@@ -37,6 +48,13 @@ from mock_db import (
     get_network_data,
     get_suspect_by_id,
 )
+
+from pressure_engine import (
+    generate_pressure_alerts,
+    get_pressure_response,
+)
+
+from query_engine import process_query
 
 
 # ---------------------------------------------------------------------------
@@ -49,7 +67,7 @@ app = FastAPI(
         "Predictive Reasoning & Adaptive Justice Network for Action — "
         "KSP Datathon 2026"
     ),
-    version="1.0.0",
+    version="2.0.0",
 )
 
 
@@ -62,6 +80,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -74,42 +94,121 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 class QueryRequest(BaseModel):
-    query: str = Field(..., min_length=1)
-    language: str = Field(default="en-IN")
-    officer_id: str = Field(default="OFFICER-DEMO")
-    session_id: str = Field(default="SESSION-DEMO")
+    query: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+    )
+
+    language: str = Field(
+        default="en-IN"
+    )
+
+    officer_id: str = Field(
+        default="OFFICER-DEMO"
+    )
+
+    session_id: str = Field(
+        default="SESSION-DEMO"
+    )
 
 
 class MemoryRequest(BaseModel):
-    officer_id: str
-    query: str
-    response: Dict[str, Any]
-    outcome: str = "unclassified"
+    officer_id: str = Field(
+        ...,
+        min_length=1,
+    )
+
+    query: str = Field(
+        ...,
+        min_length=1,
+    )
+
+    response: Dict[str, Any] = Field(
+        default_factory=dict
+    )
+
+    outcome: str = Field(
+        default="unclassified"
+    )
+
+    session_id: Optional[str] = None
+
+
+class DissentRequest(BaseModel):
+    officer_id: str = Field(
+        ...,
+        min_length=1,
+    )
+
+    session_id: Optional[str] = None
+
+    query: str = Field(
+        ...,
+        min_length=1,
+    )
+
+    response: Dict[str, Any] = Field(
+        default_factory=dict
+    )
+
+    dissent: bool = True
+
+    note: str = Field(
+        default="",
+        max_length=2000,
+    )
 
 
 # ---------------------------------------------------------------------------
-# ROOT / HEALTH
+# ROOT
 # ---------------------------------------------------------------------------
 
 @app.get("/")
 def root():
-    """Basic API information endpoint."""
+    """
+    Basic API information endpoint.
+    """
+
     return {
         "application": "PRAJNA",
-        "description": "Predictive Reasoning & Adaptive Justice Network for Action",
+        "full_name": (
+            "Predictive Reasoning & Adaptive Justice Network for Action"
+        ),
+        "description": (
+            "KSP Datathon 2026 Crime Intelligence Platform"
+        ),
         "status": "online",
-        "version": "1.0.0",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "2.0.0",
+        "timestamp": datetime.now(
+            timezone.utc
+        ).isoformat(),
+        "modules": [
+            "query_engine",
+            "crime_network",
+            "pressure_engine",
+            "memory_weaving",
+            "anomaly_alerts",
+        ],
     }
 
 
+# ---------------------------------------------------------------------------
+# HEALTH
+# ---------------------------------------------------------------------------
+
 @app.get("/health")
 def health_check():
-    """Health check endpoint for local and Catalyst deployment."""
+    """
+    Health check endpoint.
+    """
+
     return {
         "status": "healthy",
         "service": "prajna-api",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(
+            timezone.utc
+        ).isoformat(),
     }
 
 
@@ -118,14 +217,20 @@ def health_check():
 # ---------------------------------------------------------------------------
 
 @app.post("/api/query")
-def process_query(request: QueryRequest):
+def api_query(
+    request: QueryRequest,
+):
     """
     Process an investigator query.
 
-    Part 2 will connect this endpoint to query_engine.py.
+    The query engine returns:
 
-    The fallback response keeps the API functional until the query engine
-    is integrated.
+    - answer
+    - nodes
+    - edges
+    - cited FIRs
+
+    The complete response is automatically stored in Memory Weaving.
     """
 
     query = request.query.strip()
@@ -136,20 +241,33 @@ def process_query(request: QueryRequest):
             detail="Query cannot be empty.",
         )
 
+    # Process query with mock AI engine.
+    response = process_query(
+        query=query,
+        language=request.language,
+    )
+
+    # Store query/response as a memory thread.
+    memory_thread = create_memory_thread(
+        officer_id=request.officer_id,
+        query=query,
+        response=response,
+        outcome="unclassified",
+        session_id=request.session_id,
+    )
+
     return {
-        "answer": (
-            "The PRAJNA query engine is ready to process this investigation "
-            "query. The intelligent mock query engine will be connected in "
-            "Part 2."
+        **response,
+        "memory_thread_id": (
+            memory_thread[
+                "memory_thread_id"
+            ]
         ),
-        "nodes": [],
-        "edges": [],
-        "cited_firs": [],
-        "memory_thread_id": None,
-        "query": query,
-        "language": request.language,
         "officer_id": request.officer_id,
         "session_id": request.session_id,
+        "timestamp": datetime.now(
+            timezone.utc
+        ).isoformat(),
     }
 
 
@@ -160,9 +278,9 @@ def process_query(request: QueryRequest):
 @app.get("/api/network")
 def get_network():
     """
-    Return the complete criminal intelligence network.
+    Return the complete criminal intelligence graph.
 
-    The response is compatible with the D3.js Case Canvas.
+    Compatible with D3.js Case Canvas.
     """
 
     return get_network_data()
@@ -173,44 +291,65 @@ def get_network():
 # ---------------------------------------------------------------------------
 
 @app.get("/api/fir/{fir_id}")
-def get_fir(fir_id: str):
-    """Return detailed information about a specific FIR."""
+def get_fir(
+    fir_id: str,
+):
+    """
+    Return detailed information about a specific FIR.
+    """
 
-    fir = get_fir_by_id(fir_id)
+    fir = get_fir_by_id(
+        fir_id
+    )
 
     if fir is None:
         raise HTTPException(
             status_code=404,
-            detail=f"FIR '{fir_id}' was not found.",
+            detail=(
+                f"FIR '{fir_id}' was not found."
+            ),
         )
 
     return fir
 
 
 # ---------------------------------------------------------------------------
-# GET /api/suspect/{id}
+# GET /api/suspect/{suspect_id}
 # ---------------------------------------------------------------------------
 
 @app.get("/api/suspect/{suspect_id}")
-def get_suspect(suspect_id: str):
+def get_suspect(
+    suspect_id: str,
+):
     """
-    Return a suspect profile with linked FIR information.
+    Return a suspect profile with complete linked FIR information.
     """
 
-    suspect = get_suspect_by_id(suspect_id)
+    suspect = get_suspect_by_id(
+        suspect_id
+    )
 
     if suspect is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Suspect '{suspect_id}' was not found.",
+            detail=(
+                f"Suspect '{suspect_id}' was not found."
+            ),
         )
 
     linked_firs = [
-        get_fir_by_id(fir_id)
-        for fir_id in suspect["linked_firs"]
+        get_fir_by_id(
+            fir_id
+        )
+        for fir_id
+        in suspect[
+            "linked_firs"
+        ]
     ]
 
-    suspect["linked_fir_details"] = [
+    suspect[
+        "linked_fir_details"
+    ] = [
         fir
         for fir in linked_firs
         if fir is not None
@@ -220,50 +359,97 @@ def get_suspect(suspect_id: str):
 
 
 # ---------------------------------------------------------------------------
+# GET /api/suspects
+# ---------------------------------------------------------------------------
+
+@app.get("/api/suspects")
+def get_suspects():
+    """
+    Return all suspects.
+    """
+
+    suspects = get_all_suspects()
+
+    return {
+        "suspects": suspects,
+        "count": len(
+            suspects
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /api/firs
+# ---------------------------------------------------------------------------
+
+@app.get("/api/firs")
+def get_firs():
+    """
+    Return all FIR records.
+    """
+
+    firs = get_all_firs()
+
+    return {
+        "firs": firs,
+        "count": len(
+            firs
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
 # GET /api/pressure
 # ---------------------------------------------------------------------------
 
 @app.get("/api/pressure")
 def get_pressure():
     """
-    Return crime pressure data.
+    Return calculated crime pressure for all zones.
 
-    Part 2 will connect this endpoint to pressure_engine.py.
+    Pressure formula:
 
-    The fallback response returns the base zone data so that the frontend
-    can be developed independently.
+    Bail Releases       = 40%
+    Festivals           = 30%
+    Economic Stress     = 20%
+    Infrastructure      = 10%
     """
 
-    from mock_db import PRESSURE_ZONES
+    return get_pressure_response()
+
+
+# ---------------------------------------------------------------------------
+# GET /api/pressure/top
+# ---------------------------------------------------------------------------
+
+@app.get("/api/pressure/top")
+def get_top_pressure(
+    limit: int = Query(
+        default=3,
+        ge=1,
+        le=10,
+    ),
+):
+    """
+    Return the highest-pressure zones.
+    """
+
+    pressure = get_pressure_response()
+
+    zones = pressure[
+        "zones"
+    ]
 
     return {
-        "zones": [
-            {
-                **zone,
-                "pressure_score": 0.0,
-                "pressure_level": "unavailable",
-                "breakdown": {
-                    "bail_release_score": 0.0,
-                    "festival_score": 0.0,
-                    "economic_stress_score": 0.0,
-                    "infrastructure_score": 0.0,
-                },
-                "explanation": (
-                    "The pressure engine will calculate the zone score "
-                    "when Part 2 is integrated."
-                ),
-                "patrol_recommendation": (
-                    "Awaiting pressure engine calculation."
-                ),
-            }
-            for zone in PRESSURE_ZONES
+        "zones": zones[
+            :limit
         ],
-        "weights": {
-            "bail_releases": 0.4,
-            "festivals": 0.3,
-            "economic_stress": 0.2,
-            "infrastructure": 0.1,
-        },
+        "count": min(
+            limit,
+            len(
+                zones
+            ),
+        ),
     }
 
 
@@ -272,31 +458,24 @@ def get_pressure():
 # ---------------------------------------------------------------------------
 
 @app.post("/api/memory")
-def save_memory(request: MemoryRequest):
+def save_memory(
+    request: MemoryRequest,
+):
     """
-    Save an investigator memory thread.
-
-    Part 2 will connect this endpoint to memory_weaving.py.
-
-    For Part 1, the endpoint validates and returns the memory payload.
+    Manually save a Memory Weaving thread.
     """
 
-    thread_id = (
-        f"MEM-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}"
+    thread = create_memory_thread(
+        officer_id=request.officer_id,
+        query=request.query,
+        response=request.response,
+        outcome=request.outcome,
+        session_id=request.session_id,
     )
 
     return {
         "success": True,
-        "memory_thread_id": thread_id,
-        "officer_id": request.officer_id,
-        "query": request.query,
-        "response": request.response,
-        "outcome": request.outcome,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "message": (
-            "Memory thread accepted. Persistent Memory Weaving storage "
-            "will be connected in Part 2."
-        ),
+        **thread,
     }
 
 
@@ -305,21 +484,114 @@ def save_memory(request: MemoryRequest):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/memory/{officer_id}")
-def get_memory(officer_id: str):
+def get_memory(
+    officer_id: str,
+    session_id: Optional[str] = Query(
+        default=None
+    ),
+):
     """
-    Retrieve memory threads for an officer.
+    Retrieve Memory Weaving threads for an officer.
+    """
 
-    Part 2 will connect this endpoint to persistent Memory Weaving storage.
-    """
+    threads = get_memory_threads(
+        officer_id=officer_id,
+        session_id=session_id,
+    )
 
     return {
         "officer_id": officer_id,
-        "threads": [],
-        "count": 0,
-        "message": (
-            "No persistent memory threads are available yet. "
-            "Memory Weaving will be integrated in Part 2."
+        "session_id": session_id,
+        "threads": threads,
+        "count": len(
+            threads
         ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /api/memory/{officer_id}/summary
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/api/memory/{officer_id}/summary"
+)
+def get_memory_summary_api(
+    officer_id: str,
+):
+    """
+    Return memory analytics for an officer.
+    """
+
+    return get_memory_summary(
+        officer_id
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/memory/thread/{thread_id}
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/api/memory/thread/{thread_id}"
+)
+def get_memory_thread_api(
+    thread_id: str,
+):
+    """
+    Return one Memory Weaving thread.
+    """
+
+    thread = get_memory_thread(
+        thread_id
+    )
+
+    if thread is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Memory thread '{thread_id}' was not found."
+            ),
+        )
+
+    return thread
+
+
+# ---------------------------------------------------------------------------
+# POST /api/memory/dissent
+# ---------------------------------------------------------------------------
+
+@app.post("/api/memory/dissent")
+def save_dissent(
+    request: DissentRequest,
+):
+    """
+    Save investigator disagreement/agreement with an AI finding.
+
+    This supports the Intelligence Brief dissent feedback mechanism.
+    """
+
+    thread = record_dissent(
+        officer_id=request.officer_id,
+        session_id=request.session_id,
+        query=request.query,
+        response=request.response,
+        dissent=request.dissent,
+        note=request.note,
+    )
+
+    return {
+        "success": True,
+        "message": (
+            "Investigator feedback has been recorded "
+            "in the Memory Weaving system."
+        ),
+        "memory_thread_id": (
+            thread[
+                "memory_thread_id"
+            ]
+        ),
+        "thread": thread,
     }
 
 
@@ -331,33 +603,77 @@ def get_memory(officer_id: str):
 def get_alerts():
     """
     Return active crime pressure anomaly alerts.
+
+    Alerts are generated dynamically from current pressure scores.
     """
 
-    alerts = get_active_alerts()
+    dynamic_alerts = generate_pressure_alerts(
+        threshold=0.70
+    )
+
+    existing_alerts = get_active_alerts()
+
+    # Merge alerts by zone.
+    merged = {}
+
+    for alert in existing_alerts:
+        merged[
+            alert["zone_id"]
+        ] = alert
+
+    for alert in dynamic_alerts:
+        merged[
+            alert["zone_id"]
+        ] = alert
+
+    alerts = list(
+        merged.values()
+    )
 
     return {
         "alerts": alerts,
-        "count": len(alerts),
+        "count": len(
+            alerts
+        ),
+        "anomaly_threshold": 0.70,
     }
 
 
 # ---------------------------------------------------------------------------
-# OPTIONAL DATA ENDPOINTS
+# GET /api/alerts/count
 # ---------------------------------------------------------------------------
 
-@app.get("/api/suspects")
-def get_suspects():
-    """Return all suspects."""
+@app.get("/api/alerts/count")
+def get_alert_count():
+    """
+    Return a lightweight alert count for the frontend notification badge.
+    """
+
+    alerts = generate_pressure_alerts(
+        threshold=0.70
+    )
+
     return {
-        "suspects": get_all_suspects(),
-        "count": len(get_all_suspects()),
+        "count": len(
+            alerts
+        ),
+        "has_active_alerts": bool(
+            alerts
+        ),
     }
 
 
-@app.get("/api/firs")
-def get_firs():
-    """Return all FIRs."""
-    return {
-        "firs": get_all_firs(),
-        "count": len(get_all_firs()),
-    }
+# ---------------------------------------------------------------------------
+# SERVER ENTRY POINT
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+
+    import uvicorn
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )

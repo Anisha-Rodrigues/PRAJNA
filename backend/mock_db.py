@@ -4,9 +4,9 @@ PRAJNA — Mock Database
 
 Centralized mock data layer for the PRAJNA Crime Intelligence Platform.
 
-This module intentionally keeps data structures separate from the FastAPI
-application so that the mock database can later be replaced by a real
-database or Zoho Catalyst Data Store without changing the API layer.
+This module keeps all mock data separate from the FastAPI application so
+that the data layer can later be replaced by Zoho Catalyst Data Store,
+a relational database, or another persistent database.
 """
 
 from copy import deepcopy
@@ -32,7 +32,11 @@ SUSPECTS = {
             "KA/BLR/2024/002",
             "KA/BLR/2024/005",
         ],
-        "crime_types": ["theft", "robbery", "ATM skimming"],
+        "crime_types": [
+            "theft",
+            "robbery",
+            "ATM skimming",
+        ],
         "known_locations": [
             "Whitefield",
             "Marathahalli",
@@ -56,7 +60,10 @@ SUSPECTS = {
             "KA/BLR/2024/001",
             "KA/BLR/2024/003",
         ],
-        "crime_types": ["theft", "burglary"],
+        "crime_types": [
+            "theft",
+            "burglary",
+        ],
         "known_locations": [
             "Whitefield",
             "Indiranagar",
@@ -69,7 +76,10 @@ SUSPECTS = {
     "S003": {
         "id": "S003",
         "name": "Mohammed Irfan",
-        "aliases": ["Irfan", "Mohammed"],
+        "aliases": [
+            "Irfan",
+            "Mohammed",
+        ],
         "risk_level": "medium",
         "status": "active",
         "bail_status": "on_bail",
@@ -80,7 +90,10 @@ SUSPECTS = {
             "KA/BLR/2024/003",
             "KA/MYS/2024/001",
         ],
-        "crime_types": ["burglary", "assault"],
+        "crime_types": [
+            "burglary",
+            "assault",
+        ],
         "known_locations": [
             "Indiranagar",
             "Mysuru",
@@ -104,7 +117,11 @@ SUSPECTS = {
             "KA/BLR/2024/004",
             "KA/BLR/2024/005",
         ],
-        "crime_types": ["fraud", "theft", "ATM skimming"],
+        "crime_types": [
+            "fraud",
+            "theft",
+            "ATM skimming",
+        ],
         "known_locations": [
             "Electronic City",
             "Whitefield",
@@ -133,9 +150,18 @@ FIRS = {
         "location": "Whitefield",
         "date": "2024-03-15",
         "status": "under_investigation",
-        "suspect_ids": ["S001", "S002"],
-        "suspect_names": ["Raju Kumar", "Suresh Naik"],
-        "evidence_ids": ["E001", "E002"],
+        "suspect_ids": [
+            "S001",
+            "S002",
+        ],
+        "suspect_names": [
+            "Raju Kumar",
+            "Suresh Naik",
+        ],
+        "evidence_ids": [
+            "E001",
+            "E002",
+        ],
         "description": (
             "Reported theft incident in the Whitefield area involving "
             "Raju Kumar and Suresh Naik."
@@ -171,9 +197,18 @@ FIRS = {
         "location": "Indiranagar",
         "date": "2024-05-10",
         "status": "under_investigation",
-        "suspect_ids": ["S002", "S003"],
-        "suspect_names": ["Suresh Naik", "Mohammed Irfan"],
-        "evidence_ids": ["E004", "E005"],
+        "suspect_ids": [
+            "S002",
+            "S003",
+        ],
+        "suspect_names": [
+            "Suresh Naik",
+            "Mohammed Irfan",
+        ],
+        "evidence_ids": [
+            "E004",
+            "E005",
+        ],
         "description": (
             "Burglary case in Indiranagar linked to Suresh Naik and "
             "Mohammed Irfan."
@@ -210,7 +245,10 @@ FIRS = {
         "status": "under_investigation",
         "suspect_ids": ["S004"],
         "suspect_names": ["Vikram Shetty"],
-        "evidence_ids": ["E007", "E008"],
+        "evidence_ids": [
+            "E007",
+            "E008",
+        ],
         "description": (
             "Fraud investigation in Electronic City involving absconding "
             "suspect Vikram Shetty."
@@ -223,13 +261,25 @@ FIRS = {
         "police_station": "Whitefield Police Station",
         "year": 2024,
         "crime_type": "theft",
-        "crime_types": ["theft", "ATM skimming"],
+        "crime_types": [
+            "theft",
+            "ATM skimming",
+        ],
         "location": "Whitefield",
         "date": "2024-08-12",
         "status": "under_investigation",
-        "suspect_ids": ["S001", "S004"],
-        "suspect_names": ["Raju Kumar", "Vikram Shetty"],
-        "evidence_ids": ["E009", "E010"],
+        "suspect_ids": [
+            "S001",
+            "S004",
+        ],
+        "suspect_names": [
+            "Raju Kumar",
+            "Vikram Shetty",
+        ],
+        "evidence_ids": [
+            "E009",
+            "E010",
+        ],
         "description": (
             "Theft and ATM skimming case in Whitefield linked to Raju Kumar "
             "and Vikram Shetty."
@@ -312,7 +362,9 @@ EVIDENCE = {
     "E004": {
         "id": "E004",
         "type": "CCTV",
-        "description": "CCTV footage from an Indiranagar residential building",
+        "description": (
+            "CCTV footage from an Indiranagar residential building"
+        ),
         "linked_firs": ["KA/BLR/2024/003"],
     },
     "E005": {
@@ -324,25 +376,33 @@ EVIDENCE = {
     "E006": {
         "id": "E006",
         "type": "witness",
-        "description": "Witness statement recorded in Mysuru assault investigation",
+        "description": (
+            "Witness statement recorded in Mysuru assault investigation"
+        ),
         "linked_firs": ["KA/MYS/2024/001"],
     },
     "E007": {
         "id": "E007",
         "type": "digital",
-        "description": "Digital transaction records related to suspected fraud",
+        "description": (
+            "Digital transaction records related to suspected fraud"
+        ),
         "linked_firs": ["KA/BLR/2024/004"],
     },
     "E008": {
         "id": "E008",
         "type": "document",
-        "description": "Financial documents collected during fraud investigation",
+        "description": (
+            "Financial documents collected during fraud investigation"
+        ),
         "linked_firs": ["KA/BLR/2024/004"],
     },
     "E009": {
         "id": "E009",
         "type": "ATM",
-        "description": "ATM transaction records showing suspicious activity",
+        "description": (
+            "ATM transaction records showing suspicious activity"
+        ),
         "linked_firs": ["KA/BLR/2024/005"],
     },
     "E010": {
@@ -650,31 +710,27 @@ ALERTS = [
 # ---------------------------------------------------------------------------
 
 def get_all_suspects():
-    """Return a copy of all suspect records."""
     return deepcopy(list(SUSPECTS.values()))
 
 
 def get_all_firs():
-    """Return a copy of all FIR records."""
     return deepcopy(list(FIRS.values()))
 
 
 def get_suspect_by_id(suspect_id):
-    """Return a suspect by ID or None if not found."""
     suspect = SUSPECTS.get(suspect_id)
     return deepcopy(suspect) if suspect else None
 
 
 def get_fir_by_id(fir_id):
-    """Return an FIR by full FIR number or None if not found."""
     fir = FIRS.get(fir_id)
     return deepcopy(fir) if fir else None
 
 
 def get_active_alerts():
-    """Return all currently active anomaly alerts."""
     return deepcopy([
-        alert for alert in ALERTS
+        alert
+        for alert in ALERTS
         if alert.get("active") is True
     ])
 
@@ -682,12 +738,13 @@ def get_active_alerts():
 def get_network_data():
     """
     Return a graph-ready network containing suspects, FIRs,
-    locations, evidence, and their relationships.
+    locations, evidence, and relationships.
     """
 
     nodes = []
     edges = []
 
+    # Suspect nodes
     for suspect in SUSPECTS.values():
         nodes.append({
             "id": suspect["id"],
@@ -698,6 +755,7 @@ def get_network_data():
             "data": deepcopy(suspect),
         })
 
+    # FIR nodes
     for fir in FIRS.values():
         nodes.append({
             "id": f"FIR:{fir['fir_id']}",
@@ -707,6 +765,7 @@ def get_network_data():
             "data": deepcopy(fir),
         })
 
+    # Location nodes
     for location in LOCATIONS.values():
         nodes.append({
             "id": location["id"],
@@ -715,6 +774,7 @@ def get_network_data():
             "data": deepcopy(location),
         })
 
+    # Evidence nodes
     for evidence in EVIDENCE.values():
         nodes.append({
             "id": evidence["id"],
@@ -723,20 +783,27 @@ def get_network_data():
             "data": deepcopy(evidence),
         })
 
+    # Existing suspect/location relationships
     edges.extend(deepcopy(NETWORK_EDGES))
 
+    # FIR relationships
     for fir in FIRS.values():
+
         fir_node_id = f"FIR:{fir['fir_id']}"
 
+        # Suspect -> FIR
         for suspect_id in fir["suspect_ids"]:
             edges.append({
                 "source": suspect_id,
                 "target": fir_node_id,
                 "relationship": "linked to FIR",
                 "confidence": 1.0,
-                "linked_firs": [fir["fir_id"]],
+                "linked_firs": [
+                    fir["fir_id"]
+                ],
             })
 
+        # FIR -> Location
         location_id = next(
             (
                 location_id
@@ -752,16 +819,21 @@ def get_network_data():
                 "target": location_id,
                 "relationship": "reported at",
                 "confidence": 1.0,
-                "linked_firs": [fir["fir_id"]],
+                "linked_firs": [
+                    fir["fir_id"]
+                ],
             })
 
+        # FIR -> Evidence
         for evidence_id in fir["evidence_ids"]:
             edges.append({
                 "source": fir_node_id,
                 "target": evidence_id,
                 "relationship": "supported by evidence",
                 "confidence": 1.0,
-                "linked_firs": [fir["fir_id"]],
+                "linked_firs": [
+                    fir["fir_id"]
+                ],
             })
 
     return {
