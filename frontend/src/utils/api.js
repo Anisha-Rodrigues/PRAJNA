@@ -55,7 +55,7 @@ export async function saveMemory(officerId, query, response, outcome) {
     body: JSON.stringify({
       officer_id: officerId,
       query,
-      response,
+      response: { answer: response },
       outcome,
     }),
   });
