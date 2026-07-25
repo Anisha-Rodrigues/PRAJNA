@@ -46,7 +46,13 @@ export async function getPressure() {
   return handleResponse(res);
 }
 
-export async function saveMemory(officerId, query, response, outcome) {
+export async function saveMemory(
+  officerId,
+  query,
+  response,
+  outcome,
+  sessionId = null
+) {
   const res = await fetch(`${BASE_URL}/memory`, {
     method: "POST",
     headers: {
@@ -54,15 +60,17 @@ export async function saveMemory(officerId, query, response, outcome) {
     },
     body: JSON.stringify({
       officer_id: officerId,
-      query,
-      response: { answer: response },
-      outcome,
+      query: query,
+      response: {
+        answer: response,
+      },
+      outcome: outcome,
+      session_id: sessionId,
     }),
   });
 
   return handleResponse(res);
 }
-
 export async function getMemory(officerId) {
   const res = await fetch(
     `${BASE_URL}/memory/${encodeURIComponent(officerId)}`
