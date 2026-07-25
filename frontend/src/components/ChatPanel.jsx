@@ -28,7 +28,13 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiR
       ]);
       onNodesReceived(data.nodes || [], data.edges || []);
       onAiReply?.(data.answer, data.cited_firs);
-      await saveMemory(officerId, text, data.answer, "logged");
+      await saveMemory(
+  officerId,
+  text,
+  data.answer,
+  "logged",
+  sessionId
+);
     } catch (err) {
   console.error("PRAJNA request error:", err);
 
