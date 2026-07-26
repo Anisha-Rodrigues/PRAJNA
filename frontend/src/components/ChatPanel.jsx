@@ -53,10 +53,20 @@ export default function ChatPanel({ officerId, sessionId, onNodesReceived, onAiR
         console.warn("Memory Weaving save failed (non-fatal):", memErr);
       }
     } catch (err) {
-      const errText = "Connection error — check that the backend is running on port 8000.";
-      setMessages((prev) => [...prev, { role: "ai", text: errText }]);
-      if (voiceOutputOn) speak(errText, language);
-    } finally {
+  console.error("PRAJNA request error:", err);
+
+  const errText = `Error: ${err.message}`;
+
+  setMessages((prev) => [
+    ...prev,
+    {
+      role: "ai",
+      text: errText,
+    },
+  ]);
+
+  if (voiceOutputOn) speak(errText, language);
+} finally {
       setLoading(false);
     }
   };
