@@ -162,6 +162,21 @@ FIRS = {
             "E001",
             "E002",
         ],
+        "victims": [
+            {
+                "victim_id": "V001",
+                "name": "Anand Kumar",
+                "age": 42,
+                "gender": "M",
+            },
+        ],
+        "act_sections": [
+            {
+                "act_code": "IPC",
+                "section_code": "379",
+                "description": "Punishment for theft",
+            },
+        ],
         "description": (
             "Reported theft incident in the Whitefield area involving "
             "Raju Kumar and Suresh Naik."
@@ -181,6 +196,21 @@ FIRS = {
         "suspect_ids": ["S001"],
         "suspect_names": ["Raju Kumar"],
         "evidence_ids": ["E003"],
+        "victims": [
+            {
+                "victim_id": "V002",
+                "name": "Lakshmi Devi",
+                "age": 55,
+                "gender": "F",
+            },
+        ],
+        "act_sections": [
+            {
+                "act_code": "IPC",
+                "section_code": "392",
+                "description": "Punishment for robbery",
+            },
+        ],
         "description": (
             "Robbery case reported in Marathahalli with Raju Kumar "
             "identified as the primary suspect."
@@ -209,6 +239,26 @@ FIRS = {
             "E004",
             "E005",
         ],
+        "victims": [
+            {
+                "victim_id": "V003",
+                "name": "Prakash Rao",
+                "age": 38,
+                "gender": "M",
+            },
+        ],
+        "act_sections": [
+            {
+                "act_code": "IPC",
+                "section_code": "380",
+                "description": "Theft in a dwelling house",
+            },
+            {
+                "act_code": "IPC",
+                "section_code": "454",
+                "description": "House-trespass to commit an offence",
+            },
+        ],
         "description": (
             "Burglary case in Indiranagar linked to Suresh Naik and "
             "Mohammed Irfan."
@@ -228,6 +278,21 @@ FIRS = {
         "suspect_ids": ["S003"],
         "suspect_names": ["Mohammed Irfan"],
         "evidence_ids": ["E006"],
+        "victims": [
+            {
+                "victim_id": "V004",
+                "name": "Ravi Shankar",
+                "age": 29,
+                "gender": "M",
+            },
+        ],
+        "act_sections": [
+            {
+                "act_code": "IPC",
+                "section_code": "323",
+                "description": "Punishment for voluntarily causing hurt",
+            },
+        ],
         "description": (
             "Assault case reported in Mysuru involving Mohammed Irfan."
         ),
@@ -248,6 +313,21 @@ FIRS = {
         "evidence_ids": [
             "E007",
             "E008",
+        ],
+        "victims": [
+            {
+                "victim_id": "V005",
+                "name": "Deepa Nair",
+                "age": 33,
+                "gender": "F",
+            },
+        ],
+        "act_sections": [
+            {
+                "act_code": "IPC",
+                "section_code": "420",
+                "description": "Cheating and dishonestly inducing delivery of property",
+            },
         ],
         "description": (
             "Fraud investigation in Electronic City involving absconding "
@@ -279,6 +359,26 @@ FIRS = {
         "evidence_ids": [
             "E009",
             "E010",
+        ],
+        "victims": [
+            {
+                "victim_id": "V006",
+                "name": "Sunil Mathew",
+                "age": 47,
+                "gender": "M",
+            },
+        ],
+        "act_sections": [
+            {
+                "act_code": "IPC",
+                "section_code": "379",
+                "description": "Punishment for theft",
+            },
+            {
+                "act_code": "IT_ACT",
+                "section_code": "66C",
+                "description": "Punishment for identity theft",
+            },
         ],
         "description": (
             "Theft and ATM skimming case in Whitefield linked to Raju Kumar "
