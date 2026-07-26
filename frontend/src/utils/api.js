@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = "https://prajna-backend-50044356262.development.catalystappsail.in/api";
 
 async function handleResponse(res) {
   if (!res.ok) throw new Error(`API error: ${res.status}`);
